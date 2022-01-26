@@ -61,9 +61,15 @@ export class UserService {
     return {token};
   }
 
-  async logout(username: string) :Promise<UserResponseType>{
-    await this.userModel.updateOne({ username }, {token : ""});
-    return await this.userModel.findOne({ username });
+  async logout(username: string) :Promise<{message : string}>{
+    try {
+      await this.userModel.updateOne({ username }, {token : ""});
+      return {
+        message : "SUCCESS"
+      }
+    } catch (err) {
+      throw new HttpException(err.message, HttpStatus.BAD_GATEWAY);
+    }
   }
 
   async checkToken(token: string) :Promise<ICheckUser> {

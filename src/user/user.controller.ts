@@ -25,7 +25,7 @@ export class UserController {
 
   @Get("logout")
   @UseGuards(AuthGuard)
-  async logout(@User() user: IUserAuth): Promise<UserResponseType> {
+  async logout(@User() user: IUserAuth): Promise<{message : string}> {
     return await this.userService.logout(user.username);
   }
 

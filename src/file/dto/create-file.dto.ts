@@ -1,5 +1,6 @@
 
 export class CreateFileDto {
+  _id?: string;
   readonly username? : string;
   buffer : any;
   readonly fileName : string;

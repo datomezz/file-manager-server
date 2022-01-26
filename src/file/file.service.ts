@@ -48,11 +48,11 @@ export class FileService {
     return this.buildFileResposne(newFile);
   }
 
-  async download(user : IUserAuth, id: string) : Promise<CreateFileDto> {
+  async download(username : string, id: string) : Promise<CreateFileDto> {
     try {
       const file = await this.fileModel.findById(id);
 
-      if (user.username !== file.username) {
+      if (username !== file.username) {
         throw new HttpException("You have not permission", HttpStatus.FORBIDDEN);
       }
 
@@ -89,8 +89,9 @@ export class FileService {
   }
 
   private _transformFileDto(file: CreateFileDto) : FileResponseType{
-    const {username, fileName, ext, allowed, size, customName, commited, mimeType} = file;
+    const {_id, username, fileName, ext, allowed, size, customName, commited, mimeType} = file;
     return {
+      _id,
       username,
       fileName,
       ext,
@@ -111,10 +112,33 @@ export class FileService {
       }
 
       Object.assign(file, body);
+      const updatedFile = new this.fileModel(file);
+      await updatedFile.save();
       return this._transformFileDto(file);
 
     } catch (err) {
       throw new HttpException("Error Occurred", HttpStatus.BAD_GATEWAY);
+    }
+  }
+
+  async findAll(user: IUserAuth): Promise<FileResponseType[]> {
+    const files = await this.fileModel.find({ username: user.username });
+    return files.map(item => this._transformFileDto(item));
+  }
+
+  async removeFile(user: IUserAuth, id: string): Promise<FileResponseType> {
+    try {
+      const file = await this.fileModel.findById(id);
+
+      if (!file && file.username !== user.username) {
+        throw new HttpException("File Doesn't Exist Or You Have No Permision", HttpStatus.FORBIDDEN);
+      }
+
+      file.remove();
+      return this._transformFileDto(file);
+
+    } catch (err) {
+      throw new HttpException("Someshing Went Wrong", HttpStatus.BAD_GATEWAY);
     }
   }
 }

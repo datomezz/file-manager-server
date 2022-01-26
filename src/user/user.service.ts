@@ -7,6 +7,12 @@ import { UserSchema, UserSchemaType, IUser } from './user.model';
 import { TokenModel } from './token.model';
 import { JwtPayload } from 'jsonwebtoken';
 import { ITokenResponse } from './types/token-response.interface';
+import { UserResponseType } from './types/user-response.type';
+import { IUserAuth } from './types/user-auth.interface';
+
+export interface ICheckUser {
+  message: "SUCCESS" | "FAILURE";
+}
 
 @Injectable()
 export class UserService {
@@ -53,6 +59,18 @@ export class UserService {
     await this.userModel.updateOne({ username }, { token });
 
     return {token};
+  }
+
+  async logout(username: string) :Promise<UserResponseType>{
+    await this.userModel.updateOne({ username }, {token : ""});
+    return await this.userModel.findOne({ username });
+  }
+
+  async checkToken(token: string) :Promise<ICheckUser> {
+    const checkExist = await this.userModel.findOne({ token });
+    return {
+      message : checkExist ? "SUCCESS" : "FAILURE"
+    }
   }
 
   async findUserByName(username: string | JwtPayload) {
